@@ -3,7 +3,6 @@ package com.vidhan.devbuddy.service;
 import com.vidhan.devbuddy.entity.User;
 import com.vidhan.devbuddy.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 

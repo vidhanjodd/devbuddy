@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Your Snippets</title>
+</head>
+<body>
+
+<h2>Your Snippets</h2>
+
+<a href="/snippets/new">Add New Snippet</a>
+
+<hr>
+
+<div th:each="snippet : ${snippets}">
+  <h3 th:text="${snippet.title}"></h3>
+  <pre th:text="${snippet.content}"></pre>
+  <p th:text="${snippet.language}"></p>
+  <hr>
+</div>
+
+</body>
+</html>

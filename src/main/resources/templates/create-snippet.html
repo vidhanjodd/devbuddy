@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Add Snippet</title>
+</head>
+<body>
+
+<h2>Add Snippet</h2>
+
+<form action="/snippets" method="post">
+  <input type="text" name="title" placeholder="Title" required /><br><br>
+
+  <select name="language">
+    <option>Java</option>
+    <option>JavaScript</option>
+    <option>Python</option>
+  </select><br><br>
+
+  <textarea name="content" rows="10" cols="50"
+            placeholder="Paste your code"></textarea><br><br>
+
+  <button type="submit">Save</button>
+</form>
+
+</body>
+</html>
