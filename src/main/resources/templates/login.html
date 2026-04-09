@@ -1,19 +1,107 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
-    <title>Login</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevBuddy — Sign In</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
 
-<h2>Login</h2>
+<div class="auth-page">
 
-<form action="/login" method="post">
-    <input type="text" name="username" placeholder="Username" required /><br><br>
+    <div class="auth-left">
+        <div class="auth-brand">
+            <div class="brand-icon">⚡</div>
+            <span class="auth-brand-name">Dev<em>Buddy</em></span>
+        </div>
 
-    <input type="password" name="password" placeholder="Password" required /><br><br>
+        <h2 class="auth-headline">
+            Code smarter,<br>
+            <span>ship faster.</span>
+        </h2>
 
-    <button type="submit">Login</button>
-</form>
+        <p class="auth-subtext">
+            Store, search, and AI-explain your code snippets in one secure place.
+            Built for developers who value their time.
+        </p>
+
+        <div class="auth-feature-list">
+            <div class="auth-feature">
+                <div class="auth-feature-dot"></div>
+                <span>Instant snippet search across all your code</span>
+            </div>
+            <div class="auth-feature">
+                <div class="auth-feature-dot"></div>
+                <span>AI-powered code explanation & optimization</span>
+            </div>
+            <div class="auth-feature">
+                <div class="auth-feature-dot"></div>
+                <span>Secure, user-specific access control</span>
+            </div>
+            <div class="auth-feature">
+                <div class="auth-feature-dot"></div>
+                <span>Supports Java, Python, JavaScript & more</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="auth-right">
+        <div class="auth-card fade-up">
+
+            <div class="auth-card-header">
+                <div class="auth-card-icon">👋</div>
+                <h1 class="auth-card-title">Welcome back</h1>
+                <p class="auth-card-sub">Sign in to your DevBuddy account</p>
+            </div>
+
+            <div th:if="${param.error}" class="alert alert-error">
+                ⚠️ Invalid username or password. Please try again.
+            </div>
+
+            <div th:if="${param.logout}" class="alert alert-success">
+                ✓ You've been signed out successfully.
+            </div>
+
+            <div th:if="${param.registered}" class="alert alert-success">
+                ✓ Account created! Please sign in.
+            </div>
+
+            <form th:action="@{/login}" method="post" class="auth-form">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text"
+                           id="username"
+                           name="username"
+                           placeholder="Enter your username"
+                           autocomplete="username"
+                           required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password"
+                           id="password"
+                           name="password"
+                           placeholder="Enter your password"
+                           autocomplete="current-password"
+                           required>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-full">
+                    Sign In →
+                </button>
+            </form>
+
+            <hr class="auth-divider">
+
+            <p class="auth-footer">
+                Don't have an account? <a href="/register">Create one free</a>
+            </p>
+        </div>
+    </div>
+
+</div>
 
 </body>
 </html>

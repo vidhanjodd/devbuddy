@@ -1,24 +1,111 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
-  <title>Your Snippets</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DevBuddy — My Snippets</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
 
-<h2>Your Snippets</h2>
+<div class="app">
 
-<a href="/snippets/new">Add New Snippet</a>
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">⚡</div>
+      <span>Dev<em>Buddy</em></span>
+    </div>
 
-<hr>
+    <div class="sidebar-label">Navigation</div>
 
-<div th:each="snippet : ${snippets}">
-  <h3 th:text="${snippet.title}"></h3>
-  <pre th:text="${snippet.content}"></pre>
-  <p th:text="${snippet.language}"></p>
-  <a th:href="@{/snippets/edit/{id}(id=${snippet.id})}">Edit</a>
-  |
-  <a th:href="@{/snippets/delete/{id}(id=${snippet.id})}">Delete</a>
-  <hr>
+    <a href="/snippets" class="nav-link active">
+      <span class="nav-icon">📂</span> Snippets
+    </a>
+    <a href="/snippets/new" class="nav-link">
+      <span class="nav-icon">＋</span> New Snippet
+    </a>
+
+    <div class="sidebar-bottom">
+      <div class="sidebar-user">
+        <div class="user-avatar" th:text="${#strings.toUpperCase(#strings.substring(#authentication.name,0,1))}">U</div>
+        <div class="user-info">
+          <div class="user-name" th:text="${#authentication.name}">Username</div>
+          <div class="user-role">Developer</div>
+        </div>
+      </div>
+      <form th:action="@{/logout}" method="post" style="margin-top:8px;">
+        <button type="submit" class="nav-link btn-ghost"
+                style="width:100%;border:none;cursor:pointer;background:transparent;color:var(--text-secondary);font-family:'Sora',sans-serif;">
+          <span class="nav-icon">🚪</span> Sign Out
+        </button>
+      </form>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <div class="page-header fade-up">
+      <div>
+        <h1 class="page-title">My Snippets</h1>
+        <p class="page-subtitle">All your saved code in one place</p>
+      </div>
+      <a href="/snippets/new" class="btn btn-primary">＋ New Snippet</a>
+    </div>
+
+    <div class="stats-bar fade-up fade-up-1">
+      <div class="stat-pill">
+        <div class="stat-value" th:text="${snippets.size()}">0</div>
+        <div class="stat-label">Total snippets</div>
+      </div>
+    </div>
+
+    <div class="snippets-grid fade-up fade-up-2">
+
+      <div th:if="${snippets.empty}" class="empty-state">
+        <div class="empty-icon">📭</div>
+        <h3>No snippets yet</h3>
+        <p>Save your first code snippet to get started.</p>
+        <a href="/snippets/new" class="btn btn-primary">Create your first snippet</a>
+      </div>
+
+      <div th:each="snippet : ${snippets}" class="card">
+        <div class="card-header">
+          <span class="card-title" th:text="${snippet.title}">Snippet Title</span>
+          <span class="lang-badge"
+                th:classappend="${snippet.language == 'Java'} ? 'lang-java' :
+                                         (${snippet.language == 'JavaScript'} ? 'lang-javascript' :
+                                         (${snippet.language == 'Python'} ? 'lang-python' :
+                                         (${snippet.language == 'TypeScript'} ? 'lang-typescript' :
+                                         (${snippet.language == 'Go'} ? 'lang-go' :
+                                         (${snippet.language == 'Rust'} ? 'lang-rust' : 'lang-default')))))"
+                th:text="${snippet.language}">Lang</span>
+        </div>
+
+        <div class="card-body">
+          <pre th:text="${snippet.content}"></pre>
+        </div>
+
+        <div class="card-footer">
+                    <span class="card-meta"
+                          th:text="${snippet.createdAt != null} ? ${#temporals.format(snippet.createdAt, 'MMM d, yyyy')} : ''">
+                    </span>
+          <div class="card-actions">
+            <a th:href="@{/snippets/edit/{id}(id=${snippet.id})}"
+               class="btn btn-edit-ghost">✏ Edit</a>
+
+            <form th:action="@{/snippets/delete/{id}(id=${snippet.id})}"
+                  method="post"
+                  style="display:inline;"
+                  onsubmit="return confirm('Delete this snippet?')">
+              <button type="submit" class="btn btn-danger-ghost">🗑 Delete</button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
 </div>
 
 </body>

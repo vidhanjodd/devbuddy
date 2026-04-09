@@ -1,9 +1,38 @@
 <!DOCTYPE html>
-<html>
+<!-- FIX #9: Added Thymeleaf namespace + full CSS link + real layout -->
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
-    <title>DevBuddy</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevBuddy — Your AI Code Companion</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
-<h1>Welcome to Dev-Buddy 🚀</h1>
+
+<div class="home-page">
+    <div class="home-glow"></div>
+
+    <div class="home-content">
+        <div class="home-badge fade-up">
+            <span>⚡</span> AI-Powered Snippet Manager
+        </div>
+
+        <h1 class="home-title fade-up fade-up-1">
+            Your code,<br>
+            <span class="highlight">organized.</span>
+        </h1>
+
+        <p class="home-subtitle fade-up fade-up-2">
+            DevBuddy helps you store, search, and understand your code snippets
+            with AI-powered insights. Never lose a useful piece of code again.
+        </p>
+
+        <div class="home-actions fade-up fade-up-3">
+            <a href="/snippets" class="btn btn-primary">Open Dashboard →</a>
+            <a href="/register" class="btn btn-ghost">Create Account</a>
+        </div>
+    </div>
+</div>
+
 </body>
 </html>

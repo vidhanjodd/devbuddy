@@ -1,26 +1,124 @@
 <!DOCTYPE html>
-<html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
-  <title>Add Snippet</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DevBuddy — New Snippet</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
 
-<h2>Add Snippet</h2>
+<div class="app">
 
-<form action="/snippets" method="post">
-  <input type="text" name="title" placeholder="Title" required /><br><br>
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">⚡</div>
+      <span>Dev<em>Buddy</em></span>
+    </div>
 
-  <select name="language">
-    <option>Java</option>
-    <option>JavaScript</option>
-    <option>Python</option>
-  </select><br><br>
+    <div class="sidebar-label">Navigation</div>
 
-  <textarea name="content" rows="10" cols="50"
-            placeholder="Paste your code"></textarea><br><br>
+    <a href="/snippets" class="nav-link">
+      <span class="nav-icon">📂</span> Snippets
+    </a>
+    <a href="/snippets/new" class="nav-link active">
+      <span class="nav-icon">＋</span> New Snippet
+    </a>
 
-  <button type="submit">Save</button>
-</form>
+    <div class="sidebar-bottom">
+      <div class="sidebar-user">
+        <div class="user-avatar" th:text="${#strings.toUpperCase(#strings.substring(#authentication.name,0,1))}">U</div>
+        <div class="user-info">
+          <div class="user-name" th:text="${#authentication.name}">Username</div>
+          <div class="user-role">Developer</div>
+        </div>
+      </div>
+      <form th:action="@{/logout}" method="post" style="margin-top:8px;">
+        <button type="submit" class="nav-link btn-ghost"
+                style="width:100%;border:none;cursor:pointer;background:transparent;color:var(--text-secondary);font-family:'Sora',sans-serif;">
+          <span class="nav-icon">🚪</span> Sign Out
+        </button>
+      </form>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <div class="page-header fade-up">
+      <div>
+        <h1 class="page-title">New Snippet</h1>
+        <p class="page-subtitle">Save a reusable piece of code to your library</p>
+      </div>
+      <a href="/snippets" class="btn btn-ghost">← Back</a>
+    </div>
+
+    <div class="form-page fade-up fade-up-1">
+      <div class="form-card">
+
+        <div class="form-card-header">
+          <span style="font-size:20px;">📝</span>
+          <h2>Snippet Details</h2>
+        </div>
+
+        <form th:action="@{/snippets}" th:object="${snippet}" method="post">
+
+          <div class="form-card-body">
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="title">Snippet Title *</label>
+                <input type="text"
+                       id="title"
+                       th:field="*{title}"
+                       placeholder="e.g. Binary Search in Java"
+                       required>
+                <div th:if="${#fields.hasErrors('title')}"
+                     class="field-error" th:errors="*{title}"></div>
+              </div>
+
+              <div class="form-group">
+                <label for="language">Language *</label>
+                <select id="language" th:field="*{language}" required>
+                  <option value="">— Select language —</option>
+                  <option value="Java">Java</option>
+                  <option value="JavaScript">JavaScript</option>
+                  <option value="TypeScript">TypeScript</option>
+                  <option value="Python">Python</option>
+                  <option value="Go">Go</option>
+                  <option value="Rust">Rust</option>
+                  <option value="SQL">SQL</option>
+                  <option value="Bash">Bash</option>
+                  <option value="Other">Other</option>
+                </select>
+                <div th:if="${#fields.hasErrors('language')}"
+                     class="field-error" th:errors="*{language}"></div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="content">Code *</label>
+              <textarea id="content"
+                        th:field="*{content}"
+                        placeholder="Paste your code here..."
+                        rows="16"
+                        required></textarea>
+              <div th:if="${#fields.hasErrors('content')}"
+                   class="field-error" th:errors="*{content}"></div>
+            </div>
+
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">💾 Save Snippet</button>
+            <a href="/snippets" class="btn btn-ghost">Cancel</a>
+          </div>
+
+        </form>
+      </div>
+    </div>
+
+  </main>
+</div>
 
 </body>
 </html>

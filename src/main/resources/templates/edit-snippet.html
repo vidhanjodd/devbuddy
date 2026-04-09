@@ -1,27 +1,121 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
-    <title>Edit Snippet</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevBuddy — Edit Snippet</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
 
-<h2>Edit Snippet</h2>
+<div class="app">
 
-<form th:action="@{/snippets/update/{id}(id=${snippet.id})}" method="post">
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-icon">⚡</div>
+            <span>Dev<em>Buddy</em></span>
+        </div>
 
-    <input type="text" name="title" th:value="${snippet.title}" /><br><br>
+        <div class="sidebar-label">Navigation</div>
 
-    <select name="language">
-        <option th:selected="${snippet.language == 'Java'}">Java</option>
-        <option th:selected="${snippet.language == 'JavaScript'}">JavaScript</option>
-        <option th:selected="${snippet.language == 'Python'}">Python</option>
-    </select><br><br>
+        <a href="/snippets" class="nav-link active">
+            <span class="nav-icon">📂</span> Snippets
+        </a>
+        <a href="/snippets/new" class="nav-link">
+            <span class="nav-icon">＋</span> New Snippet
+        </a>
 
-    <textarea name="content" rows="10" cols="50"
-              th:text="${snippet.content}"></textarea><br><br>
+        <div class="sidebar-bottom">
+            <div class="sidebar-user">
+                <div class="user-avatar" th:text="${#strings.toUpperCase(#strings.substring(#authentication.name,0,1))}">U</div>
+                <div class="user-info">
+                    <div class="user-name" th:text="${#authentication.name}">Username</div>
+                    <div class="user-role">Developer</div>
+                </div>
+            </div>
+            <form th:action="@{/logout}" method="post" style="margin-top:8px;">
+                <button type="submit" class="nav-link btn-ghost"
+                        style="width:100%;border:none;cursor:pointer;background:transparent;color:var(--text-secondary);font-family:'Sora',sans-serif;">
+                    <span class="nav-icon">🚪</span> Sign Out
+                </button>
+            </form>
+        </div>
+    </aside>
 
-    <button type="submit">Update</button>
-</form>
+    <main class="main">
+
+        <div class="page-header fade-up">
+            <div>
+                <h1 class="page-title">Edit Snippet</h1>
+                <p class="page-subtitle" th:text="${snippet.title}">Snippet Title</p>
+            </div>
+            <a href="/snippets" class="btn btn-ghost">← Back</a>
+        </div>
+
+        <div class="form-page fade-up fade-up-1">
+            <div class="form-card">
+
+                <div class="form-card-header">
+                    <span style="font-size:20px;">✏️</span>
+                    <h2>Edit Snippet</h2>
+                </div>
+
+                <form th:action="@{/snippets/update/{id}(id=${snippet.id})}"
+                      th:object="${snippet}"
+                      method="post">
+
+                    <div class="form-card-body">
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="title">Snippet Title *</label>
+                                <input type="text"
+                                       id="title"
+                                       th:field="*{title}"
+                                       required>
+                                <div th:if="${#fields.hasErrors('title')}"
+                                     class="field-error" th:errors="*{title}"></div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="language">Language *</label>
+                                <select id="language" th:field="*{language}" required>
+                                    <option value="Java"       th:selected="${snippet.language == 'Java'}">Java</option>
+                                    <option value="JavaScript" th:selected="${snippet.language == 'JavaScript'}">JavaScript</option>
+                                    <option value="TypeScript" th:selected="${snippet.language == 'TypeScript'}">TypeScript</option>
+                                    <option value="Python"     th:selected="${snippet.language == 'Python'}">Python</option>
+                                    <option value="Go"         th:selected="${snippet.language == 'Go'}">Go</option>
+                                    <option value="Rust"       th:selected="${snippet.language == 'Rust'}">Rust</option>
+                                    <option value="SQL"        th:selected="${snippet.language == 'SQL'}">SQL</option>
+                                    <option value="Bash"       th:selected="${snippet.language == 'Bash'}">Bash</option>
+                                    <option value="Other"      th:selected="${snippet.language == 'Other'}">Other</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="content">Code *</label>
+                            <textarea id="content"
+                                      th:field="*{content}"
+                                      rows="16"
+                                      required></textarea>
+                            <div th:if="${#fields.hasErrors('content')}"
+                                 class="field-error" th:errors="*{content}"></div>
+                        </div>
+
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">✓ Update Snippet</button>
+                        <a href="/snippets" class="btn btn-ghost">Cancel</a>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+
+    </main>
+</div>
 
 </body>
 </html>
