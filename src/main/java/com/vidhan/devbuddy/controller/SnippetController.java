@@ -22,14 +22,22 @@ public class SnippetController {
 
     @GetMapping
     public String getSnippets(Model model, Principal principal) {
-        model.addAttribute("snippets",
-                snippetService.getUserSnippets(principal.getName()));
+        model.addAttribute("snippets", snippetService.getUserSnippets(principal.getName()));
         return "snippets";
     }
 
     @GetMapping("/new")
-    public String newSnippetForm(Model model) {
-        model.addAttribute("snippet", new Snippet());
+    public String newSnippetForm(
+            @RequestParam(required = false, defaultValue = "") String title,
+            @RequestParam(required = false, defaultValue = "") String language,
+            @RequestParam(required = false, defaultValue = "") String content,
+            Model model) {
+
+        Snippet snippet = new Snippet();
+        snippet.setTitle(title);
+        snippet.setLanguage(language);
+        snippet.setContent(content);
+        model.addAttribute("snippet", snippet);
         return "create-snippet";
     }
 
@@ -49,7 +57,6 @@ public class SnippetController {
 
     @GetMapping("/edit/{id}")
     public String editSnippetForm(@PathVariable Long id, Model model, Principal principal) {
-        // FIX #4: Ownership check before serving the edit form
         Snippet snippet = snippetService.getSnippetById(id);
         if (!snippet.getUser().getUsername().equals(principal.getName())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You don't own this snippet");
