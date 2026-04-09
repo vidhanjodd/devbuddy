@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Edit Snippet</title>
+</head>
+<body>
+
+<h2>Edit Snippet</h2>
+
+<form th:action="@{/snippets/update/{id}(id=${snippet.id})}" method="post">
+
+    <input type="text" name="title" th:value="${snippet.title}" /><br><br>
+
+    <select name="language">
+        <option th:selected="${snippet.language == 'Java'}">Java</option>
+        <option th:selected="${snippet.language == 'JavaScript'}">JavaScript</option>
+        <option th:selected="${snippet.language == 'Python'}">Python</option>
+    </select><br><br>
+
+    <textarea name="content" rows="10" cols="50"
+              th:text="${snippet.content}"></textarea><br><br>
+
+    <button type="submit">Update</button>
+</form>
+
+</body>
+</html>

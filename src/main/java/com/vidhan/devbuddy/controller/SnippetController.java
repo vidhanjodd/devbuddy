@@ -36,4 +36,22 @@ public class SnippetController {
         snippetService.saveSnippet(snippet, principal.getName());
         return "redirect:/snippets";
     }
+    @GetMapping("/edit/{id}")
+    public String editSnippetForm(@PathVariable Long id, Model model) {
+        model.addAttribute("snippet", snippetService.getSnippetById(id));
+        return "edit-snippet";
+    }
+    @PostMapping("/update/{id}")
+    public String updateSnippet(@PathVariable Long id,
+                                @ModelAttribute Snippet snippet,
+                                Principal principal) {
+
+        snippetService.updateSnippet(id, snippet, principal.getName());
+        return "redirect:/snippets";
+    }
+    @GetMapping("/delete/{id}")
+    public String deleteSnippet(@PathVariable Long id, Principal principal) {
+        snippetService.deleteSnippet(id, principal.getName());
+        return "redirect:/snippets";
+    }
 }

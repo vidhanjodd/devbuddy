@@ -32,4 +32,32 @@ public class SnippetService {
         User user = userRepository.findByUsername(username).orElseThrow();
         return snippetRepository.findByUser(user);
     }
+
+    public Snippet getSnippetById(Long id) {
+        return snippetRepository.findById(id).orElseThrow();
+    }
+
+    public void updateSnippet(Long id, Snippet updatedSnippet, String username) {
+        Snippet snippet = snippetRepository.findById(id).orElseThrow();
+
+        if (!snippet.getUser().getUsername().equals(username)) {
+            throw new RuntimeException("Unauthorized");
+        }
+
+        snippet.setTitle(updatedSnippet.getTitle());
+        snippet.setContent(updatedSnippet.getContent());
+        snippet.setLanguage(updatedSnippet.getLanguage());
+
+        snippetRepository.save(snippet);
+    }
+
+    public void deleteSnippet(Long id, String username) {
+        Snippet snippet = snippetRepository.findById(id).orElseThrow();
+
+        if (!snippet.getUser().getUsername().equals(username)) {
+            throw new RuntimeException("Unauthorized");
+        }
+
+        snippetRepository.delete(snippet);
+    }
 }

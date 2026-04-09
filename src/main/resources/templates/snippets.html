@@ -15,6 +15,9 @@
   <h3 th:text="${snippet.title}"></h3>
   <pre th:text="${snippet.content}"></pre>
   <p th:text="${snippet.language}"></p>
+  <a th:href="@{/snippets/edit/{id}(id=${snippet.id})}">Edit</a>
+  |
+  <a th:href="@{/snippets/delete/{id}(id=${snippet.id})}">Delete</a>
   <hr>
 </div>
 
