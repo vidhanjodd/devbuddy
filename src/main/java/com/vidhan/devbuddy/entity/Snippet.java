@@ -6,6 +6,8 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "snippets")
@@ -35,6 +37,13 @@ public class Snippet {
     @JoinColumn(name = "user_id")
     private User user;
 
+    @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinTable(
+            name = "snippet_tags",
+            joinColumns = @JoinColumn(name = "snippet_id"),
+            inverseJoinColumns = @JoinColumn(name = "tag_id")
+    )
+    private Set<Tag> tags = new HashSet<>();
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();

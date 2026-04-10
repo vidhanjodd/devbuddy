@@ -9,22 +9,15 @@
 <body>
 
 <div class="app">
-
     <aside class="sidebar">
         <div class="sidebar-brand">
             <div class="brand-icon">⚡</div>
             <span>Dev<em>Buddy</em></span>
         </div>
-
         <div class="sidebar-label">Navigation</div>
-
-        <a href="/snippets" class="nav-link active">
-            <span class="nav-icon">📂</span> Snippets
-        </a>
-        <a href="/snippets/new" class="nav-link">
-            <span class="nav-icon">＋</span> New Snippet
-        </a>
-
+        <a href="/snippets" class="nav-link active"><span class="nav-icon">📂</span> Snippets</a>
+        <a href="/snippets/new" class="nav-link"><span class="nav-icon">＋</span> New Snippet</a>
+        <a href="/ai/generate-page" class="nav-link"><span class="nav-icon">✨</span> Generate Code</a>
         <div class="sidebar-bottom">
             <div class="sidebar-user">
                 <div class="user-avatar" th:text="${#strings.toUpperCase(#strings.substring(#authentication.name,0,1))}">U</div>
@@ -43,7 +36,6 @@
     </aside>
 
     <main class="main">
-
         <div class="page-header fade-up">
             <div>
                 <h1 class="page-title">Edit Snippet</h1>
@@ -54,29 +46,21 @@
 
         <div class="form-page fade-up fade-up-1">
             <div class="form-card">
-
                 <div class="form-card-header">
                     <span style="font-size:20px;">✏️</span>
                     <h2>Edit Snippet</h2>
                 </div>
 
                 <form th:action="@{/snippets/update/{id}(id=${snippet.id})}"
-                      th:object="${snippet}"
-                      method="post">
-
+                      th:object="${snippet}" method="post">
                     <div class="form-card-body">
 
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="title">Snippet Title *</label>
-                                <input type="text"
-                                       id="title"
-                                       th:field="*{title}"
-                                       required>
-                                <div th:if="${#fields.hasErrors('title')}"
-                                     class="field-error" th:errors="*{title}"></div>
+                                <label for="title">Title *</label>
+                                <input type="text" id="title" th:field="*{title}" required>
+                                <div th:if="${#fields.hasErrors('title')}" class="field-error" th:errors="*{title}"></div>
                             </div>
-
                             <div class="form-group">
                                 <label for="language">Language *</label>
                                 <select id="language" th:field="*{language}" required>
@@ -93,29 +77,46 @@
                             </div>
                         </div>
 
+                        <!-- Tags input pre-filled from server -->
+                        <div class="form-group">
+                            <label for="tags">Tags <span style="color:var(--text-muted);font-weight:400;">(comma-separated, optional)</span></label>
+                            <input type="text" id="tags" name="tags"
+                                   th:value="${tagString}"
+                                   placeholder="e.g. sorting, algorithm, interview"
+                                   class="tag-input">
+                            <div class="tag-preview" id="tagPreview"></div>
+                        </div>
+
                         <div class="form-group">
                             <label for="content">Code *</label>
-                            <textarea id="content"
-                                      th:field="*{content}"
-                                      rows="16"
-                                      required></textarea>
-                            <div th:if="${#fields.hasErrors('content')}"
-                                 class="field-error" th:errors="*{content}"></div>
+                            <textarea id="content" th:field="*{content}" rows="16" required></textarea>
+                            <div th:if="${#fields.hasErrors('content')}" class="field-error" th:errors="*{content}"></div>
                         </div>
 
                     </div>
-
                     <div class="form-actions">
                         <button type="submit" class="btn btn-primary">✓ Update Snippet</button>
                         <a href="/snippets" class="btn btn-ghost">Cancel</a>
                     </div>
-
                 </form>
             </div>
         </div>
-
     </main>
 </div>
+
+<script>
+    const tagInput   = document.getElementById('tags');
+    const tagPreview = document.getElementById('tagPreview');
+
+    function renderPreview() {
+        const tags = tagInput.value.split(',').map(t => t.trim()).filter(Boolean);
+        tagPreview.innerHTML = tags.map(t => `<span class="tag-pill">#${t}</span>`).join('');
+    }
+
+    tagInput?.addEventListener('input', renderPreview);
+    // Render existing tags on page load
+    renderPreview();
+</script>
 
 </body>
 </html>

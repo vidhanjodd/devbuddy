@@ -52,15 +52,35 @@
     <div class="page-header fade-up">
       <div>
         <h1 class="page-title">My Snippets</h1>
-        <p class="page-subtitle">All your saved code in one place</p>
+        <p class="page-subtitle"
+           th:text="${query != null && !query.isEmpty()} ? 'Search results for &quot;' + ${query} + '&quot;' : 'All your saved code in one place'">
+          All your saved code in one place
+        </p>
       </div>
       <a href="/snippets/new" class="btn btn-primary">＋ New Snippet</a>
     </div>
 
+    <form th:action="@{/snippets}" method="get" class="search-form fade-up">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text"
+               name="query"
+               th:value="${query}"
+               placeholder="Search by title, language or tag..."
+               class="search-input"
+               autocomplete="off">
+        <button th:if="${query != null && !query.isEmpty()}"
+                type="button"
+                class="search-clear"
+                onclick="window.location='/snippets'">✕</button>
+      </div>
+      <button type="submit" class="btn btn-ghost">Search</button>
+    </form>
+
     <div class="stats-bar fade-up fade-up-1">
       <div class="stat-pill">
-        <div class="stat-value" th:text="${snippets.size()}">0</div>
-        <div class="stat-label">Total snippets</div>
+        <div class="stat-value" th:text="${totalItems}">0</div>
+        <div class="stat-label" th:text="${query != null && !query.isEmpty()} ? 'Results found' : 'Total snippets'">Total snippets</div>
       </div>
       <div class="stat-pill" style="border-color:rgba(245,158,11,0.2);background:rgba(245,158,11,0.04);">
         <div class="stat-value" style="color:var(--accent);">✦</div>
@@ -71,13 +91,15 @@
     <div class="snippets-grid fade-up fade-up-2">
 
       <div th:if="${snippets.empty}" class="empty-state">
-        <div class="empty-icon">📭</div>
-        <h3>No snippets yet</h3>
-        <p>Save your first code snippet to get started.</p>
-        <a href="/snippets/new" class="btn btn-primary">Create your first snippet</a>
+        <div class="empty-icon" th:text="${query != null && !query.isEmpty()} ? '🔍' : '📭'">📭</div>
+        <h3 th:text="${query != null && !query.isEmpty()} ? 'No snippets match your search' : 'No snippets yet'">No snippets yet</h3>
+        <p th:text="${query != null && !query.isEmpty()} ? 'Try a different keyword or tag.' : 'Save your first code snippet to get started.'">Save your first code snippet to get started.</p>
+        <a th:if="${query == null || query.isEmpty()}" href="/snippets/new" class="btn btn-primary">Create your first snippet</a>
+        <a th:if="${query != null && !query.isEmpty()}" href="/snippets" class="btn btn-ghost">Clear search</a>
       </div>
 
       <div th:each="snippet : ${snippets}" class="card">
+
         <div class="card-header">
           <span class="card-title" th:text="${snippet.title}">Title</span>
           <span class="lang-badge"
@@ -90,28 +112,32 @@
                 th:text="${snippet.language}">Lang</span>
         </div>
 
+        <div th:if="${!snippet.tags.isEmpty()}" class="tag-row">
+                    <span th:each="tag : ${snippet.tags}" class="tag-pill"
+                          th:text="'#' + ${tag.name}">
+                    </span>
+        </div>
+
         <div class="card-body">
-          <pre th:text="${snippet.content}"></pre>
+          <pre th:text="${snippet.content}" th:id="'code-' + ${snippet.id}"></pre>
         </div>
 
         <div class="ai-actions"
              th:attr="data-id=${snippet.id}, data-title=${snippet.title}">
-          <button class="ai-btn ai-btn-explain"  onclick="triggerAi(this,'explain')">
-            💡 Explain
-          </button>
-          <button class="ai-btn ai-btn-optimize" onclick="triggerAi(this,'optimize')">
-            🚀 Optimize
-          </button>
-          <button class="ai-btn ai-btn-bugs"     onclick="triggerAi(this,'bugs')">
-            🐛 Find Bugs
-          </button>
+          <button class="ai-btn ai-btn-explain"  onclick="triggerAi(this,'explain')">💡 Explain</button>
+          <button class="ai-btn ai-btn-optimize" onclick="triggerAi(this,'optimize')">🚀 Optimize</button>
+          <button class="ai-btn ai-btn-bugs"     onclick="triggerAi(this,'bugs')">🐛 Find Bugs</button>
         </div>
 
         <div class="card-footer">
                     <span class="card-meta"
-                          th:text="${snippet.createdAt != null}
-                              ? ${#temporals.format(snippet.createdAt,'MMM d, yyyy')} : ''"></span>
+                          th:text="${snippet.createdAt != null} ? ${#temporals.format(snippet.createdAt,'MMM d, yyyy')} : ''"></span>
           <div class="card-actions">
+            <button class="btn btn-ghost"
+                    th:onclick="'copyCode(' + ${snippet.id} + ', this)'"
+                    style="font-size:12px;padding:5px 10px;">
+              📋 Copy
+            </button>
             <a th:href="@{/snippets/edit/{id}(id=${snippet.id})}" class="btn btn-edit-ghost">✏ Edit</a>
             <form th:action="@{/snippets/delete/{id}(id=${snippet.id})}"
                   method="post" style="display:inline;"
@@ -123,13 +149,34 @@
       </div>
 
     </div>
+
+    <div th:if="${totalPages > 1}" class="pagination fade-up">
+      <a th:if="${hasPrev}"
+         th:href="@{/snippets(page=${currentPage - 1}, query=${query})}"
+         class="page-btn">← Prev</a>
+      <span th:if="${!hasPrev}" class="page-btn page-btn-disabled">← Prev</span>
+
+      <span th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
+                <a th:if="${i != currentPage}"
+                   th:href="@{/snippets(page=${i}, query=${query})}"
+                   class="page-btn"
+                   th:text="${i + 1}">1</a>
+                <span th:if="${i == currentPage}"
+                      class="page-btn page-btn-active"
+                      th:text="${i + 1}">1</span>
+            </span>
+
+      <a th:if="${hasNext}"
+         th:href="@{/snippets(page=${currentPage + 1}, query=${query})}"
+         class="page-btn">Next →</a>
+      <span th:if="${!hasNext}" class="page-btn page-btn-disabled">Next →</span>
+    </div>
+
   </main>
 </div>
 
-
 <div class="ai-modal-backdrop" id="aiBackdrop" onclick="closeModal()">
   <div class="ai-modal" onclick="event.stopPropagation()">
-
     <div class="ai-modal-header">
       <div class="ai-modal-title-row">
         <div class="ai-modal-icon" id="modalIcon">💡</div>
@@ -140,20 +187,16 @@
       </div>
       <button class="ai-modal-close" onclick="closeModal()">✕</button>
     </div>
-
     <div class="ai-modal-loading" id="modalLoading">
       <div class="ai-spinner"></div>
-      <div class="ai-loading-text" id="loadingText">Asking Grok...</div>
+      <div class="ai-loading-text" id="loadingText">Asking Groq...</div>
     </div>
-
     <div class="ai-modal-body" id="modalBody" style="display:none;">
       <div class="ai-result" id="aiResult"></div>
     </div>
-
     <div class="ai-modal-error" id="modalError" style="display:none;">
       <span>⚠️</span> <span id="errorText"></span>
     </div>
-
     <div class="ai-modal-footer">
       <button class="btn btn-ghost" onclick="closeModal()">Close</button>
       <button class="btn btn-primary" id="copyBtn" onclick="copyResult()" style="display:none;">
@@ -168,5 +211,26 @@
      style="display:none;"></div>
 
 <script th:src="@{/js/ai.js}"></script>
+<script>
+  function copyCode(snippetId, btn) {
+      const pre = document.getElementById('code-' + snippetId);
+      if (!pre) return;
+      navigator.clipboard.writeText(pre.innerText).then(() => {
+          const original = btn.innerHTML;
+          btn.innerHTML = '✓ Copied!';
+          btn.style.color = 'var(--success)';
+          setTimeout(() => {
+              btn.innerHTML = original;
+              btn.style.color = '';
+          }, 2000);
+      });
+  }
+
+  // Live search on Enter key — form already handles submit button
+  document.querySelector('.search-input')?.addEventListener('keydown', e => {
+      if (e.key === 'Enter') e.target.closest('form').submit();
+  });
+</script>
+
 </body>
 </html>

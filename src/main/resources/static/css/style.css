@@ -443,7 +443,9 @@ pre {
   color: var(--text-muted);
 }
 
-
+/* ─────────────────────────────────────────
+   FORMS (create / edit snippet)
+───────────────────────────────────────── */
 .form-page {
   max-width: 760px;
 }
@@ -573,7 +575,9 @@ textarea {
   color: var(--success);
 }
 
-
+/* ─────────────────────────────────────────
+   AUTH PAGES
+───────────────────────────────────────── */
 .auth-page {
   min-height: 100vh;
   display: flex;
@@ -834,7 +838,9 @@ textarea {
 
 .home-actions { display: flex; gap: 12px; justify-content: center; }
 
-
+/* ─────────────────────────────────────────
+   ANIMATIONS
+───────────────────────────────────────── */
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(16px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -845,3 +851,150 @@ textarea {
 .fade-up-2 { animation-delay: 0.12s; }
 .fade-up-3 { animation-delay: 0.2s; }
 .fade-up-4 { animation-delay: 0.28s; }
+/* ─────────────────────────────────────────
+   SEARCH BAR
+───────────────────────────────────────── */
+.search-form {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    align-items: center;
+}
+
+.search-wrap {
+    flex: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.search-icon {
+    position: absolute;
+    left: 14px;
+    font-size: 14px;
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+.search-input {
+    width: 100%;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-family: 'Sora', sans-serif;
+    font-size: 14px;
+    padding: 10px 40px 10px 40px;
+    outline: none;
+    transition: var(--transition);
+}
+
+.search-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-dim);
+}
+
+.search-input::placeholder { color: var(--text-muted); }
+
+.search-clear {
+    position: absolute;
+    right: 12px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 13px;
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: var(--transition);
+}
+.search-clear:hover { color: var(--text-primary); background: var(--bg-raised); }
+
+/* ─────────────────────────────────────────
+   TAG PILLS
+───────────────────────────────────────── */
+.tag-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    padding: 8px 18px;
+    border-bottom: 1px solid var(--border);
+}
+
+.tag-pill {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    font-weight: 500;
+    padding: 3px 8px;
+    border-radius: 99px;
+    background: rgba(56,189,248,0.08);
+    border: 1px solid rgba(56,189,248,0.18);
+    color: var(--accent-2);
+    cursor: default;
+    transition: var(--transition);
+}
+
+.tag-pill:hover {
+    background: rgba(56,189,248,0.15);
+    border-color: rgba(56,189,248,0.35);
+}
+
+/* Tag input preview (create/edit forms) */
+.tag-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+    min-height: 24px;
+}
+
+/* ─────────────────────────────────────────
+   PAGINATION
+───────────────────────────────────────── */
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 36px;
+    padding-bottom: 24px;
+}
+
+.page-btn {
+    font-family: 'Sora', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 7px 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-strong);
+    background: var(--bg-surface);
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: var(--transition);
+    cursor: pointer;
+}
+
+.page-btn:hover {
+    background: var(--bg-raised);
+    color: var(--text-primary);
+    border-color: var(--accent);
+}
+
+.page-btn-active {
+    background: var(--accent);
+    color: #0d0f14;
+    border-color: var(--accent);
+    font-weight: 700;
+    cursor: default;
+}
+
+.page-btn-active:hover {
+    background: var(--accent);
+    color: #0d0f14;
+}
+
+.page-btn-disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    pointer-events: none;
+}
