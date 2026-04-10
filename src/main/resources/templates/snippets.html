@@ -27,6 +27,9 @@
     <a href="/ai/generate-page" class="nav-link">
       <span class="nav-icon">✨</span> Generate Code
     </a>
+    <a href="/github/import" class="nav-link">
+      <span class="nav-icon">🐙</span> GitHub Import
+    </a>
 
     <div class="sidebar-bottom">
       <div class="sidebar-user">
@@ -47,8 +50,10 @@
     </div>
   </aside>
 
+  <!-- ── Main ── -->
   <main class="main">
 
+    <!-- Header -->
     <div class="page-header fade-up">
       <div>
         <h1 class="page-title">My Snippets</h1>
@@ -60,6 +65,12 @@
       <a href="/snippets/new" class="btn btn-primary">＋ New Snippet</a>
     </div>
 
+    <!-- Flash success (e.g. after GitHub import) -->
+    <div th:if="${successMessage}" class="flash-success fade-up">
+      ✓ <span th:text="${successMessage}"></span>
+    </div>
+
+    <!-- Search bar -->
     <form th:action="@{/snippets}" method="get" class="search-form fade-up">
       <div class="search-wrap">
         <span class="search-icon">🔍</span>
@@ -77,6 +88,7 @@
       <button type="submit" class="btn btn-ghost">Search</button>
     </form>
 
+    <!-- Stats bar -->
     <div class="stats-bar fade-up fade-up-1">
       <div class="stat-pill">
         <div class="stat-value" th:text="${totalItems}">0</div>
@@ -88,8 +100,10 @@
       </div>
     </div>
 
+    <!-- Snippet Grid -->
     <div class="snippets-grid fade-up fade-up-2">
 
+      <!-- Empty state -->
       <div th:if="${snippets.empty}" class="empty-state">
         <div class="empty-icon" th:text="${query != null && !query.isEmpty()} ? '🔍' : '📭'">📭</div>
         <h3 th:text="${query != null && !query.isEmpty()} ? 'No snippets match your search' : 'No snippets yet'">No snippets yet</h3>
@@ -98,6 +112,7 @@
         <a th:if="${query != null && !query.isEmpty()}" href="/snippets" class="btn btn-ghost">Clear search</a>
       </div>
 
+      <!-- Snippet card -->
       <div th:each="snippet : ${snippets}" class="card">
 
         <div class="card-header">
@@ -112,6 +127,7 @@
                 th:text="${snippet.language}">Lang</span>
         </div>
 
+        <!-- Tag pills -->
         <div th:if="${!snippet.tags.isEmpty()}" class="tag-row">
                     <span th:each="tag : ${snippet.tags}" class="tag-pill"
                           th:text="'#' + ${tag.name}">
@@ -122,6 +138,7 @@
           <pre th:text="${snippet.content}" th:id="'code-' + ${snippet.id}"></pre>
         </div>
 
+        <!-- AI action row -->
         <div class="ai-actions"
              th:attr="data-id=${snippet.id}, data-title=${snippet.title}">
           <button class="ai-btn ai-btn-explain"  onclick="triggerAi(this,'explain')">💡 Explain</button>
@@ -133,6 +150,7 @@
                     <span class="card-meta"
                           th:text="${snippet.createdAt != null} ? ${#temporals.format(snippet.createdAt,'MMM d, yyyy')} : ''"></span>
           <div class="card-actions">
+            <!-- Copy button -->
             <button class="btn btn-ghost"
                     th:onclick="'copyCode(' + ${snippet.id} + ', this)'"
                     style="font-size:12px;padding:5px 10px;">
@@ -150,6 +168,7 @@
 
     </div>
 
+    <!-- Pagination -->
     <div th:if="${totalPages > 1}" class="pagination fade-up">
       <a th:if="${hasPrev}"
          th:href="@{/snippets(page=${currentPage - 1}, query=${query})}"
@@ -175,6 +194,7 @@
   </main>
 </div>
 
+<!-- AI Modal -->
 <div class="ai-modal-backdrop" id="aiBackdrop" onclick="closeModal()">
   <div class="ai-modal" onclick="event.stopPropagation()">
     <div class="ai-modal-header">
@@ -212,6 +232,7 @@
 
 <script th:src="@{/js/ai.js}"></script>
 <script>
+  // Copy snippet code to clipboard
   function copyCode(snippetId, btn) {
       const pre = document.getElementById('code-' + snippetId);
       if (!pre) return;

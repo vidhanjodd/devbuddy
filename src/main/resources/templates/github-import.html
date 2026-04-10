@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevBuddy — Import from GitHub</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<div class="app">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-icon">⚡</div>
+            <span>Dev<em>Buddy</em></span>
+        </div>
+        <div class="sidebar-label">Navigation</div>
+        <a href="/snippets" class="nav-link"><span class="nav-icon">📂</span> Snippets</a>
+        <a href="/snippets/new" class="nav-link"><span class="nav-icon">＋</span> New Snippet</a>
+        <a href="/ai/generate-page" class="nav-link"><span class="nav-icon">✨</span> Generate Code</a>
+        <a href="/github/import" class="nav-link active"><span class="nav-icon">🐙</span> GitHub Import</a>
+
+        <div class="sidebar-bottom">
+            <div class="sidebar-user">
+                <div class="user-avatar"
+                     th:text="${#strings.toUpperCase(#strings.substring(#authentication.name,0,1))}">U</div>
+                <div class="user-info">
+                    <div class="user-name" th:text="${#authentication.name}">Username</div>
+                    <div class="user-role">Developer</div>
+                </div>
+            </div>
+            <form th:action="@{/logout}" method="post" style="margin-top:8px;">
+                <button type="submit" class="nav-link btn-ghost"
+                        style="width:100%;border:none;cursor:pointer;background:transparent;
+                               color:var(--text-secondary);font-family:'Sora',sans-serif;">
+                    <span class="nav-icon">🚪</span> Sign Out
+                </button>
+            </form>
+        </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main">
+
+        <div class="page-header fade-up">
+            <div>
+                <h1 class="page-title">🐙 GitHub Import</h1>
+                <p class="page-subtitle">Import any public file from GitHub directly into your snippet library</p>
+            </div>
+            <a href="/snippets" class="btn btn-ghost">← Back</a>
+        </div>
+
+        <div class="form-page fade-up fade-up-1" style="max-width:820px;">
+
+            <!-- ── Step 1: URL Input Card ── -->
+            <div class="form-card" style="margin-bottom:20px;">
+                <div class="form-card-header">
+                    <span style="font-size:20px;">🔗</span>
+                    <h2>Paste GitHub File URL</h2>
+                </div>
+
+                <div class="form-card-body">
+
+                    <!-- Error alert -->
+                    <div th:if="${error}" class="alert alert-error" style="margin-bottom:16px;">
+                        ⚠️ <span th:text="${error}"></span>
+                    </div>
+
+                    <!-- URL examples -->
+                    <div class="gh-examples">
+                        <div class="example-label">Supported URL formats:</div>
+                        <div class="gh-example-row">
+                            <span class="gh-example-badge">blob</span>
+                            <code class="gh-example-code">https://github.com/owner/repo/blob/main/src/Main.java</code>
+                        </div>
+                        <div class="gh-example-row">
+                            <span class="gh-example-badge">raw</span>
+                            <code class="gh-example-code">https://raw.githubusercontent.com/owner/repo/main/src/Main.java</code>
+                        </div>
+                    </div>
+
+                    <form th:action="@{/github/fetch}" method="post" id="fetchForm">
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label for="githubUrl">GitHub File URL</label>
+                            <div class="gh-url-row">
+                                <input type="url"
+                                       id="githubUrl"
+                                       name="githubUrl"
+                                       th:value="${githubUrl}"
+                                       placeholder="https://github.com/owner/repo/blob/main/file.py"
+                                       required
+                                       style="font-family:'JetBrains Mono',monospace;font-size:13px;">
+                                <button type="submit" class="btn btn-primary" id="fetchBtn">
+                                    Fetch →
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div th:if="${preview}" class="form-card preview-card fade-up">
+
+                <div class="form-card-header" style="background:rgba(74,222,128,0.04);border-color:rgba(74,222,128,0.15);">
+                    <span style="font-size:20px;">✅</span>
+                    <h2>Preview & Save</h2>
+                    <span class="lang-badge lang-default" style="margin-left:auto;"
+                          th:text="${language}">Lang</span>
+                </div>
+
+                <form th:action="@{/github/save}" method="post">
+                    <div class="form-card-body">
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="title">Snippet Title</label>
+                                <input type="text" id="title" name="title"
+                                       th:value="${title}" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="language">Language</label>
+                                <select id="language" name="language" required>
+                                    <option value="Java"       th:selected="${language == 'Java'}">Java</option>
+                                    <option value="JavaScript" th:selected="${language == 'JavaScript'}">JavaScript</option>
+                                    <option value="TypeScript" th:selected="${language == 'TypeScript'}">TypeScript</option>
+                                    <option value="Python"     th:selected="${language == 'Python'}">Python</option>
+                                    <option value="Go"         th:selected="${language == 'Go'}">Go</option>
+                                    <option value="Rust"       th:selected="${language == 'Rust'}">Rust</option>
+                                    <option value="SQL"        th:selected="${language == 'SQL'}">SQL</option>
+                                    <option value="Bash"       th:selected="${language == 'Bash'}">Bash</option>
+                                    <option value="Other"      th:selected="${language == 'Other'}">Other</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Tags -->
+                        <div class="form-group">
+                            <label for="tags">Tags
+                                <span style="color:var(--text-muted);font-weight:400;">(comma-separated, optional)</span>
+                            </label>
+                            <input type="text" id="tags" name="tags"
+                                   placeholder="e.g. github, imported, algorithm"
+                                   class="tag-input">
+                            <div class="tag-preview" id="tagPreview"></div>
+                        </div>
+
+                        <!-- Source URL badge -->
+                        <div class="gh-source-badge">
+                            <span class="gh-source-icon">🐙</span>
+                            <span>Imported from</span>
+                            <a th:href="${rawUrl}" target="_blank" rel="noopener"
+                               th:text="${rawUrl}" class="gh-source-link">url</a>
+                        </div>
+
+                        <!-- Code preview (read-only) -->
+                        <div class="form-group">
+                            <label>Code Preview
+                                <span style="color:var(--text-muted);font-weight:400;">
+                                    — <span id="lineCount"></span>
+                                </span>
+                            </label>
+                            <textarea id="content" name="content"
+                                      th:text="${content}"
+                                      rows="18"
+                                      style="font-family:'JetBrains Mono',monospace;font-size:12.5px;"></textarea>
+                        </div>
+
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">💾 Save as Snippet</button>
+                        <a href="/github/import" class="btn btn-ghost">Import Another</a>
+                    </div>
+                </form>
+            </div>
+
+            <div th:if="${preview != null and !preview}" class="how-it-works fade-up fade-up-2">
+                <div class="hiw-title">How it works</div>
+                <div class="hiw-steps">
+                    <div class="hiw-step">
+                        <div class="hiw-num">1</div>
+                        <div>
+                            <strong>Paste any GitHub file URL</strong> — the normal browser URL from a repo page works fine.
+                        </div>
+                    </div>
+                    <div class="hiw-step">
+                        <div class="hiw-num">2</div>
+                        <div>
+                            <strong>Preview & edit</strong> — review the code, adjust the title, language and add tags.
+                        </div>
+                    </div>
+                    <div class="hiw-step">
+                        <div class="hiw-num">3</div>
+                        <div>
+                            <strong>Save</strong> — the file lands in your snippet library, ready for AI analysis.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+</div>
+
+<script>
+    // Show line count in preview
+    const contentArea = document.getElementById('content');
+    const lineCountEl = document.getElementById('lineCount');
+    if (contentArea && lineCountEl) {
+        const lines = contentArea.value.split('\n').length;
+        lineCountEl.textContent = lines + ' lines';
+    }
+
+    // Live tag preview
+    const tagInput   = document.getElementById('tags');
+    const tagPreview = document.getElementById('tagPreview');
+    tagInput?.addEventListener('input', () => {
+        const tags = tagInput.value.split(',').map(t => t.trim()).filter(Boolean);
+        tagPreview.innerHTML = tags.map(t => `<span class="tag-pill">#${t}</span>`).join('');
+    });
+
+    // Loading state on fetch
+    document.getElementById('fetchForm')?.addEventListener('submit', () => {
+        const btn = document.getElementById('fetchBtn');
+        btn.textContent = 'Fetching...';
+        btn.disabled = true;
+    });
+</script>
+
+</body>
+</html>
