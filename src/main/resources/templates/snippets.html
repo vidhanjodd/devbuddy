@@ -30,6 +30,7 @@
     <a href="/github/import" class="nav-link">
       <span class="nav-icon">🐙</span> GitHub Import
     </a>
+    <a href="/search" class="nav-link"><span class="nav-icon">🔮</span> AI Search</a>
 
     <div class="sidebar-bottom">
       <div class="sidebar-user">
@@ -150,7 +151,7 @@
                     <span class="card-meta"
                           th:text="${snippet.createdAt != null} ? ${#temporals.format(snippet.createdAt,'MMM d, yyyy')} : ''"></span>
           <div class="card-actions">
-            <!-- Copy button -->
+            <a th:href="@{/snippets/{id}/chat(id=${snippet.id})}" class="btn btn-ghost" ...>💬 Chat</a>
             <button class="btn btn-ghost"
                     th:onclick="'copyCode(' + ${snippet.id} + ', this)'"
                     style="font-size:12px;padding:5px 10px;">

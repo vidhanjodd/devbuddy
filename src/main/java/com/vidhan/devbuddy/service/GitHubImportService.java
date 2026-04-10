@@ -57,21 +57,24 @@ public class GitHubImportService {
                                String title, String content,
                                String language, String rawUrl) {}
 
-
     public ImportResult fetchFromUrl(String inputUrl) {
         if (inputUrl == null || inputUrl.isBlank()) {
-            return ImportResult(false, "URL cannot be empty.", null, null, null, null);
+            return new ImportResult(false, "URL cannot be empty.", null, null, null, null);
         }
 
         String url = inputUrl.trim();
 
         if (!url.contains("github.com") && !url.contains("raw.githubusercontent.com")) {
-            return fail("Only GitHub URLs are supported (github.com or raw.githubusercontent.com).");
+            return new ImportResult(false,
+                    "Only GitHub URLs are supported (github.com or raw.githubusercontent.com).",
+                    null, null, null, null);
         }
 
         String rawUrl = toRawUrl(url);
         if (rawUrl == null) {
-            return fail("Could not parse GitHub URL. Make sure it points to a specific file.");
+            return new ImportResult(false,
+                    "Could not parse GitHub URL. Make sure it points to a specific file.",
+                    null, null, null, null);
         }
 
         String content;
@@ -87,19 +90,25 @@ public class GitHubImportService {
                     HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() == 404) {
-                return fail("File not found. Make sure the repo is public and the URL is correct.");
+                return new ImportResult(false,
+                        "File not found. Make sure the repo is public and the URL is correct.",
+                        null, null, null, null);
             }
             if (response.statusCode() != 200) {
-                return fail("GitHub returned status " + response.statusCode() + ". Try again later.");
+                return new ImportResult(false,
+                        "GitHub returned status " + response.statusCode() + ". Try again later.",
+                        null, null, null, null);
             }
 
             content = response.body();
             if (content == null || content.isBlank()) {
-                return fail("The file appears to be empty.");
+                return new ImportResult(false, "The file appears to be empty.",
+                        null, null, null, null);
             }
 
         } catch (Exception e) {
-            return fail("Network error fetching file: " + e.getMessage());
+            return new ImportResult(false, "Network error fetching file: " + e.getMessage(),
+                    null, null, null, null);
         }
 
         String fileName = extractFileName(rawUrl);
@@ -152,15 +161,5 @@ public class GitHubImportService {
         if (!fileName.contains(".")) return "Other";
         String ext = fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase();
         return EXT_TO_LANG.getOrDefault(ext, "Other");
-    }
-
-    private ImportResult fail(String msg) {
-        return new ImportResult(false, msg, null, null, null, null);
-    }
-
-    private ImportResult ImportResult(boolean success, String error,
-                                      String title, String content,
-                                      String language, String rawUrl) {
-        return new ImportResult(success, error, title, content, language, rawUrl);
     }
 }

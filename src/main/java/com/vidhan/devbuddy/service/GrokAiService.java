@@ -20,7 +20,6 @@ import java.time.Duration;
 @RequiredArgsConstructor
 public class GrokAiService {
 
-    // Injected from application.properties
     @Value("${groq.api.key}")
     private String apiKey;
 
@@ -40,7 +39,7 @@ public class GrokAiService {
         String prompt = """
                 You are an expert developer. Explain the following %s code clearly and concisely.
                 Cover: what it does, how it works, and any important patterns or gotchas.
-                Format your response with short paragraphs. No need for a lengthy intro.
+                Format your response with short paragraphs. No lengthy intro needed.
 
                 ```%s
                 %s
@@ -51,7 +50,7 @@ public class GrokAiService {
 
     public AiResponse optimize(Snippet snippet) {
         String prompt = """
-                You are a senior %s developer doing a code review. Analyze this code and suggest concrete improvements.
+                You are a senior %s developer doing a code review. Suggest concrete improvements.
                 Focus on: performance, readability, best practices, and potential edge cases.
                 For each suggestion show the improved code snippet.
 
@@ -64,8 +63,8 @@ public class GrokAiService {
 
     public AiResponse detectBugs(Snippet snippet) {
         String prompt = """
-                You are a security-focused %s engineer. Carefully review this code for bugs, vulnerabilities, and errors.
-                For each issue found: describe the problem, its severity (Critical / High / Medium / Low), and provide a fix.
+                You are a security-focused %s engineer. Review this code for bugs, vulnerabilities, and errors.
+                For each issue: describe the problem, its severity (Critical / High / Medium / Low), and provide a fix.
                 If no issues are found, say so clearly.
 
                 ```%s
@@ -77,7 +76,7 @@ public class GrokAiService {
 
     public AiResponse generate(String userPrompt, String language) {
         String prompt = """
-                You are an expert %s developer. Write clean, production-ready %s code for the following requirement.
+                You are an expert %s developer. Write clean, production-ready %s code for the requirement below.
                 Return ONLY the code inside a markdown code block, then a brief explanation below it.
 
                 Requirement: %s
@@ -85,17 +84,50 @@ public class GrokAiService {
         return call(prompt);
     }
 
+    public AiResponse chat(Snippet snippet, String question) {
+        String systemPrompt = """
+                You are an expert %s developer and coding assistant.
+                The user is asking about the following code snippet titled "%s".
+                Answer specifically and concisely. If the question is about the code, reference
+                specific parts of it. If it's a general question, answer it clearly.
+                Always format code in markdown code blocks.
+                """.formatted(snippet.getLanguage(), snippet.getTitle());
+
+        String userPrompt = """
+                Here is the code snippet:
+
+                ```%s
+                %s
+                ```
+
+                My question: %s
+                """.formatted(snippet.getLanguage().toLowerCase(), snippet.getContent(), question);
+
+        return callWithSystem(systemPrompt, userPrompt);
+    }
+
 
     private AiResponse call(String userPrompt) {
+        return callWithSystem(null, userPrompt);
+    }
+
+    private AiResponse callWithSystem(String systemPrompt, String userPrompt) {
         try {
             ObjectNode body = objectMapper.createObjectNode();
             body.put("model", model);
             body.put("max_tokens", 1500);
 
             ArrayNode messages = body.putArray("messages");
-            ObjectNode msg = messages.addObject();
-            msg.put("role", "user");
-            msg.put("content", userPrompt);
+
+            if (systemPrompt != null && !systemPrompt.isBlank()) {
+                ObjectNode sysMsg = messages.addObject();
+                sysMsg.put("role", "system");
+                sysMsg.put("content", systemPrompt);
+            }
+
+            ObjectNode userMsg = messages.addObject();
+            userMsg.put("role", "user");
+            userMsg.put("content", userPrompt);
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(apiUrl))
@@ -105,10 +137,11 @@ public class GrokAiService {
                     .timeout(Duration.ofSeconds(30))
                     .build();
 
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response =
+                    httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() != 200) {
-                return AiResponse.fail("Grok API returned status " + response.statusCode()
+                return AiResponse.fail("Groq API returned status " + response.statusCode()
                         + ": " + response.body());
             }
 
@@ -119,7 +152,7 @@ public class GrokAiService {
             return AiResponse.ok(content);
 
         } catch (Exception e) {
-            return AiResponse.fail("Failed to reach Grok API: " + e.getMessage());
+            return AiResponse.fail("Failed to reach Groq API: " + e.getMessage());
         }
     }
 }

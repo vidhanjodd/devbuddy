@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DevBuddy — Semantic Search</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+  <link rel="stylesheet" th:href="@{/css/ai-modal.css}">
+  <style>
+    .search-hero {
+      text-align: center;
+      padding: 48px 20px 36px;
+      max-width: 680px;
+      margin: 0 auto;
+    }
+    .search-hero h2 {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      margin-bottom: 10px;
+    }
+    .search-hero p {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 28px;
+      line-height: 1.6;
+    }
+    .sem-search-bar {
+      display: flex;
+      gap: 10px;
+      align-items: stretch;
+      max-width: 680px;
+      margin: 0 auto 40px;
+    }
+    .sem-search-wrap {
+      flex: 1;
+      position: relative;
+    }
+    .sem-search-icon {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 16px;
+      pointer-events: none;
+    }
+    .sem-search-input {
+      width: 100%;
+      padding: 13px 16px 13px 46px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      font-family: 'Sora', sans-serif;
+      font-size: 15px;
+      outline: none;
+      transition: var(--transition);
+    }
+    .sem-search-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-dim);
+    }
+    .sem-search-input::placeholder { color: var(--text-muted); }
+
+    /* Results */
+    .results-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .results-count {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    .results-count strong { color: var(--accent); }
+
+    .sem-result-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      margin-bottom: 14px;
+      transition: var(--transition);
+      animation: fadeUp 0.3s ease both;
+    }
+    .sem-result-card:hover {
+      border-color: var(--border-strong);
+      transform: translateY(-1px);
+    }
+    .sem-result-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      gap: 12px;
+    }
+    .sem-result-title-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+    .sem-result-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .score-badge {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 99px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+    .score-high   { background: rgba(74,222,128,0.12); color: #4ade80; border: 1px solid rgba(74,222,128,0.2); }
+    .score-medium { background: rgba(245,158,11,0.12); color: var(--accent); border: 1px solid rgba(245,158,11,0.2); }
+    .score-low    { background: rgba(139,146,168,0.08); color: var(--text-secondary); border: 1px solid var(--border-strong); }
+
+    .sem-result-preview {
+      padding: 14px 18px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11.5px;
+      color: var(--text-code);
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-break: break-word;
+      max-height: 120px;
+      overflow: hidden;
+      position: relative;
+    }
+    .sem-result-preview::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 40px;
+      background: linear-gradient(transparent, var(--bg-surface));
+    }
+
+    .sem-result-tags {
+      display: flex;
+      gap: 5px;
+      padding: 8px 18px;
+      flex-wrap: wrap;
+      border-top: 1px solid var(--border);
+    }
+    .sem-result-footer {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      padding: 10px 18px;
+      background: var(--bg-base);
+      border-top: 1px solid var(--border);
+    }
+
+    /* Loading spinner for AJAX search */
+    .search-loading {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      padding: 40px;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+    .search-loading.active { display: flex; }
+
+    /* How-it-works intro (shown when no query) */
+    .how-semantic-works {
+      max-width: 680px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+    .hsw-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      text-align: center;
+    }
+    .hsw-icon { font-size: 28px; margin-bottom: 10px; }
+    .hsw-card h4 { font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+    .hsw-card p  { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+
+    .example-queries {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 32px;
+      max-width: 680px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .no-results {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+      max-width: 400px;
+      margin: 0 auto;
+    }
+    .no-results h3 { color: var(--text-secondary); font-size: 16px; margin-bottom: 8px; }
+    .no-results p  { font-size: 13px; line-height: 1.6; }
+  </style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">⚡</div>
+      <span>Dev<em>Buddy</em></span>
+    </div>
+    <div class="sidebar-label">Navigation</div>
+    <a href="/snippets"      class="nav-link"><span class="nav-icon">📂</span> Snippets</a>
+    <a href="/snippets/new"  class="nav-link"><span class="nav-icon">＋</span> New Snippet</a>
+    <a href="/github/import" class="nav-link"><span class="nav-icon">🐙</span> GitHub Import</a>
+    <a href="/ai/generate-page" class="nav-link"><span class="nav-icon">✨</span> Generate Code</a>
+
+    <a href="/search"        class="nav-link active"><span class="nav-icon">🔮</span> AI Search</a>
+
+    <div class="sidebar-bottom">
+      <div class="sidebar-user">
+        <div class="user-avatar" th:text="${#strings.toUpperCase(#strings.substring(#authentication.name,0,1))}">U</div>
+        <div class="user-info">
+          <div class="user-name" th:text="${#authentication.name}">Username</div>
+          <div class="user-role">Developer</div>
+        </div>
+      </div>
+      <form th:action="@{/logout}" method="post" style="margin-top:8px;">
+        <button type="submit" class="nav-link btn-ghost"
+                style="width:100%;border:none;cursor:pointer;background:transparent;color:var(--text-secondary);font-family:'Sora',sans-serif;">
+          <span class="nav-icon">🚪</span> Sign Out
+        </button>
+      </form>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <!-- Hero -->
+    <div class="search-hero fade-up">
+      <h2>🔮 Semantic Search</h2>
+      <p>
+        Describe what you're looking for in plain English — AI understands intent,
+        not just keywords. It searches titles, tags, and code content by meaning.
+      </p>
+    </div>
+
+    <!-- Search bar -->
+    <div class="sem-search-bar fade-up fade-up-1">
+      <div class="sem-search-wrap">
+        <span class="sem-search-icon">🔮</span>
+        <input type="text"
+               id="semanticInput"
+               class="sem-search-input"
+               th:value="${query}"
+               placeholder="e.g. sort a list efficiently, database connection pool, JWT auth..."
+               autocomplete="off"/>
+      </div>
+      <button class="btn btn-primary" id="searchBtn" onclick="doSearch()">
+        Search
+      </button>
+    </div>
+
+    <!-- Example queries (shown when no active query) -->
+    <div th:if="${query == null or query.isEmpty()}" class="example-queries fade-up fade-up-1">
+      <button class="example-chip" onclick="fillQuery(this)">sorting algorithm</button>
+      <button class="example-chip" onclick="fillQuery(this)">database connection</button>
+      <button class="example-chip" onclick="fillQuery(this)">HTTP request with error handling</button>
+      <button class="example-chip" onclick="fillQuery(this)">authentication and tokens</button>
+      <button class="example-chip" onclick="fillQuery(this)">read file line by line</button>
+    </div>
+
+    <!-- Loading indicator (shown during AJAX) -->
+    <div class="search-loading" id="searchLoading">
+      <div class="ai-spinner" style="width:28px;height:28px;border-width:2.5px;"></div>
+      <span>Searching by meaning...</span>
+    </div>
+
+    <!-- Results container -->
+    <div id="resultsContainer">
+
+      <!-- Server-side rendered results (initial page load with query param) -->
+      <div th:if="${results != null}">
+
+        <div th:if="${results.empty}" class="no-results fade-up">
+          <div style="font-size:40px;margin-bottom:16px;">🤷</div>
+          <h3>No matches found</h3>
+          <p>Try rephrasing your query or adding more snippets to your library first.</p>
+          <a href="/snippets/new" class="btn btn-ghost" style="margin-top:16px;display:inline-flex;">Add a snippet</a>
+        </div>
+
+        <div th:if="${!results.empty}">
+          <div class="results-header fade-up">
+            <div class="results-count">
+              Found <strong th:text="${resultCount}">0</strong> semantically similar snippets
+            </div>
+          </div>
+
+          <div th:each="r, stat : ${results}"
+               class="sem-result-card"
+               th:style="'animation-delay:' + ${stat.index * 60} + 'ms'">
+
+            <div class="sem-result-header">
+              <div class="sem-result-title-row">
+                <span class="lang-badge"
+                      th:classappend="${r.snippet.language == 'Java'} ? 'lang-java' :
+                                       (${r.snippet.language == 'JavaScript'} ? 'lang-javascript' :
+                                       (${r.snippet.language == 'Python'} ? 'lang-python' :
+                                       (${r.snippet.language == 'TypeScript'} ? 'lang-typescript' :
+                                       (${r.snippet.language == 'Go'} ? 'lang-go' :
+                                       (${r.snippet.language == 'Rust'} ? 'lang-rust' : 'lang-default')))))"
+                      th:text="${r.snippet.language}">Lang</span>
+                <span class="sem-result-title" th:text="${r.snippet.title}">Title</span>
+              </div>
+              <span class="score-badge"
+                    th:classappend="${r.scorePercent() >= 70} ? 'score-high' :
+                                    (${r.scorePercent() >= 45} ? 'score-medium' : 'score-low')"
+                    th:text="${r.scorePercent()} + '% match'">0%</span>
+            </div>
+
+            <div th:if="${!r.snippet.tags.isEmpty()}" class="sem-result-tags">
+              <span th:each="tag : ${r.snippet.tags}"
+                    class="tag-pill"
+                    th:text="'#' + ${tag.name}"></span>
+            </div>
+
+            <div class="sem-result-preview" th:text="${#strings.abbreviate(r.snippet.content, 240)}"></div>
+
+            <div class="sem-result-footer">
+              <a th:href="@{/snippets/{id}/chat(id=${r.snippet.id})}" class="btn btn-ghost" style="font-size:12.5px;padding:6px 12px;">
+                💬 Chat
+              </a>
+              <a th:href="@{/snippets/edit/{id}(id=${r.snippet.id})}" class="btn btn-edit-ghost">
+                ✏ Edit
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Intro cards (shown when no query at all) -->
+      <div th:if="${query == null or query.isEmpty()}" class="how-semantic-works fade-up fade-up-2">
+        <div class="hsw-card">
+          <div class="hsw-icon">🧠</div>
+          <h4>Understands meaning</h4>
+          <p>Finds snippets by intent, not just words. "sort efficiently" finds quicksort even if you never typed that.</p>
+        </div>
+        <div class="hsw-card">
+          <div class="hsw-icon">🏷️</div>
+          <h4>Searches everything</h4>
+          <p>Considers titles, tags, and code together. One query surfaces the best match across your whole library.</p>
+        </div>
+        <div class="hsw-card">
+          <div class="hsw-icon">⚡</div>
+          <h4>Gets smarter over time</h4>
+          <p>Each snippet you save is automatically indexed. The more you add, the better the results.</p>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<div id="csrf"
+     th:attr="data-token=${_csrf.token}, data-header=${_csrf.headerName}"
+     style="display:none;"></div>
+
+<script>
+  const input = document.getElementById('semanticInput');
+
+  // Search on Enter key
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') doSearch();
+  });
+
+  function fillQuery(btn) {
+    input.value = btn.textContent.trim();
+    document.querySelectorAll('.example-chip').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    doSearch();
+  }
+
+  async function doSearch() {
+    const query = input.value.trim();
+    if (!query) { input.focus(); return; }
+
+    const csrf   = document.getElementById('csrf');
+    const container = document.getElementById('resultsContainer');
+    const loading   = document.getElementById('searchLoading');
+
+    loading.classList.add('active');
+    container.style.opacity = '0.4';
+    document.getElementById('searchBtn').disabled = true;
+
+    try {
+      const res = await fetch('/search/api', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          [csrf.dataset.header]: csrf.dataset.token
+        },
+        body: JSON.stringify({ query })
+      });
+
+      const data = await res.json();
+      loading.classList.remove('active');
+      container.style.opacity = '1';
+      document.getElementById('searchBtn').disabled = false;
+
+      if (data.error) {
+        container.innerHTML = `<div class="no-results"><h3>Error</h3><p>${escHtml(data.error)}</p></div>`;
+        return;
+      }
+
+      renderResults(data.results, data.count);
+    } catch(e) {
+      loading.classList.remove('active');
+      container.style.opacity = '1';
+      document.getElementById('searchBtn').disabled = false;
+      container.innerHTML = `<div class="no-results"><h3>Network error</h3><p>${escHtml(e.message)}</p></div>`;
+    }
+  }
+
+  function renderResults(results, count) {
+    const container = document.getElementById('resultsContainer');
+
+    if (!results || results.length === 0) {
+      container.innerHTML = `
+        <div class="no-results fade-up">
+          <div style="font-size:40px;margin-bottom:16px;">🤷</div>
+          <h3>No matches found</h3>
+          <p>Try rephrasing your query or adding more snippets to your library first.</p>
+          <a href="/snippets/new" class="btn btn-ghost" style="margin-top:16px;display:inline-flex;">Add a snippet</a>
+        </div>`;
+      return;
+    }
+
+    const cards = results.map((r, i) => {
+      const scoreClass = r.score >= 70 ? 'score-high' : (r.score >= 45 ? 'score-medium' : 'score-low');
+      const langClass  = langBadgeClass(r.language);
+      const tags       = r.tags.map(t => `<span class="tag-pill">#${escHtml(t)}</span>`).join('');
+      const tagsRow    = r.tags.length > 0 ? `<div class="sem-result-tags">${tags}</div>` : '';
+
+      return `
+        <div class="sem-result-card fade-up" style="animation-delay:${i * 60}ms">
+          <div class="sem-result-header">
+            <div class="sem-result-title-row">
+              <span class="lang-badge ${langClass}">${escHtml(r.language)}</span>
+              <span class="sem-result-title">${escHtml(r.title)}</span>
+            </div>
+            <span class="score-badge ${scoreClass}">${r.score}% match</span>
+          </div>
+          ${tagsRow}
+          <div class="sem-result-preview">${escHtml(r.preview)}</div>
+          <div class="sem-result-footer">
+            <a href="/snippets/${r.id}/chat" class="btn btn-ghost" style="font-size:12.5px;padding:6px 12px;">💬 Chat</a>
+            <a href="${escHtml(r.editUrl)}" class="btn btn-edit-ghost">✏ Edit</a>
+          </div>
+        </div>`;
+    }).join('');
+
+    container.innerHTML = `
+      <div class="results-header fade-up">
+        <div class="results-count">Found <strong>${count}</strong> semantically similar snippets</div>
+      </div>
+      ${cards}`;
+  }
+
+  function langBadgeClass(lang) {
+    const m = { Java:'lang-java', JavaScript:'lang-javascript', Python:'lang-python',
+                TypeScript:'lang-typescript', Go:'lang-go', Rust:'lang-rust' };
+    return m[lang] || 'lang-default';
+  }
+
+  function escHtml(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+</script>
+
+</body>
+</html>
